@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>COMPAS - Portal de Configuración SMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/lucide-react@0.378.0/dist/cjs/lucide-react.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // Hacemos que los componentes de React y los iconos estén disponibles
+      const { useState, useEffect } = React;
+      const { Plus, Save, Edit, Trash2, Check, X, Download, Upload } = lucide;
+
+      // ==================================================================
+      // INICIO DE TU COMPONENTE "CompasConfigPortal"
+      // ==================================================================
+      const CompasConfigPortal = () => {
+        const [rules, setRules] = useState([]);
+        const [editingRule, setEditingRule] = useState(null);
+        const [newRule, setNewRule] = useState({
+          origenArea: [],
+          origenCentro: [],
+          destinoArea: '',
+          destinoHospital: '',
+          destinoServicio: [],
+          citaPresencial: '',
+          otraAreaCita: []
+        });
+
+        // Datos reales del SMS con correspondencia correcta
+        const areasSanitarias = [
+          { id: 'I', nombre: 'Área I - H. Arrixaca', hospital: 'H. Arrixaca' },
+          { id: 'II', nombre: 'Área II - H. Santa Lucía / Rosell', hospital: 'H. Santa Lucía / Rosell' },
+          { id: 'III', nombre: 'Área III - H. Rafael Méndez', hospital: 'H. Rafael Méndez' },
+          { id: 'IV', nombre: 'Área IV - H. Comarcal del Noroeste', hospital: 'H. Comarcal del Noroeste' },
+          { id: 'V', nombre: 'Área V - H. Virgen del Castillo', hospital: 'H. Virgen del Castillo' },
+          { id: 'VI', nombre: 'Área VI - H. Morales Meseguer', hospital: 'H. Morales Meseguer' },
+          { id: 'VII', nombre: 'Área VII - H. Reina Sofía', hospital: 'H. Reina Sofía' },
+          { id: 'VIII', nombre: 'Área VIII - H. Los Arcos del Mar Menor', hospital: 'H. Los Arcos del Mar Menor' },
+          { id: 'IX', nombre: 'Área IX - H. Lorenzo Guirao', hospital: 'H. Lorenzo Guirao' }
+        ];
+        const centrosSalud = [
+          { codigo: '8013210', nombre: 'EAP San Andrés', localidad: 'Murcia', area: 'I' },
+          { codigo: '8012110', nombre: 'EAP Espinardo', localidad: 'Espinardo', area: 'I' },
+          { codigo: '8012122', nombre: 'CONS. GUADALUPE', localidad: '', area: 'I' },
+          { codigo: '8012410', nombre: 'EAP La Alberca', localidad: 'Murcia', area: 'I' },
+          { codigo: '8012010', nombre: 'EAP El Palmar', localidad: 'Murcia', area: 'I' },
+          { codigo: '8014710', nombre: 'C.S. Sangonera la Verde', localidad: 'Sangonera la Verde', area: 'I' },
+          { codigo: '8013410', nombre: 'C.S. Nonduermas', localidad: 'Nonduermas', area: 'I' },
+          { codigo: '8013422', nombre: 'CONS. RINCÓN DE SECA', localidad: '', area: 'I' },
+          { codigo: '8010610', nombre: 'EAP Alhama', localidad: 'Alhama de Murcia', area: 'I' },
+          { codigo: '8010410', nombre: 'C.S. Algezares', localidad: 'Algezares', area: 'I' },
+          { codigo: '8014110', nombre: 'C.S. Alcantarilla-Sangonera', localidad: 'Alcantarilla', area: 'I' },
+          { codigo: '8010310', nombre: 'C.S. Alcantarilla-casco', localidad: 'Alcantarilla', area: 'I' },
+          { codigo: '8013310', nombre: 'C.S. Mula', localidad: 'Mula', area: 'I' },
+          { codigo: '8013323', nombre: 'CONS. ALBUDEITE', localidad: '', area: 'I' },
+          { codigo: '8012510', nombre: 'C.S. La Ñora', localidad: 'La Ñora', area: 'I' },
+          { codigo: '8011510', nombre: 'C.S. Campo de Cartagena', localidad: 'Corvera', area: 'I' },
+          { codigo: '8015210', nombre: 'C.S. Aljucer', localidad: 'Aljucer', area: 'I' },
+          { codigo: '8020310', nombre: 'EAP Virgen de la Caridad', localidad: 'Cartagena', area: 'II' },
+          { codigo: '8020410', nombre: 'EAP Barrio Peral', localidad: 'Cartagena', area: 'II' },
+          { codigo: '8022010', nombre: 'EAP Puerto de Mazarrón ', localidad: 'Mazarrón', area: 'II' },
+          { codigo: '8020210', nombre: 'EAP Cartagena Casco', localidad: 'Cartagena', area: 'II' },
+          { codigo: '8020510', nombre: 'C.S. los Barreros', localidad: 'CARTAGENA', area: 'II' },
+          { codigo: '8021610', nombre: 'C.S. Santa Lucia', localidad: 'CARTAGENA', area: 'II' },
+          { codigo: '8020910', nombre: 'C.S. Fuente Alamo', localidad: 'FUENTE ALAMO', area: 'II' },
+          { codigo: '8021210', nombre: 'C.S. Pozo estrecho', localidad: 'POZO ESTRECHO', area: 'II' },
+          { codigo: '8021222', nombre: 'CONS. EL ALBUJÓN', localidad: '', area: 'II' },
+          { codigo: '8021110', nombre: 'C.S. Mazarrón', localidad: 'MAZARRON', area: 'II' },
+          { codigo: '8020710', nombre: 'C.S. Mar Menor', localidad: 'EL ALGAR', area: 'II' },
+          { codigo: '8020810', nombre: 'C.S. Cartagena Oeste', localidad: 'CARTAGENA', area: 'II' },
+          { codigo: '8020610', nombre: 'C.S. Los Dolores', localidad: 'CARTAGENA', area: 'II' },
+          { codigo: '8021010', nombre: 'C.S. La Unión', localidad: 'LA UNION', area: 'II' },
+          { codigo: '8020110', nombre: 'C.S. Molinos Marfagones', localidad: 'MURCIA', area: 'II' },
+          { codigo: '8021410', nombre: 'C.S. San Antón', localidad: 'Cartagena', area: 'II' },
+          { codigo: '8021810', nombre: 'EAP Costa Calida-La Manga', localidad: 'San Javier', area: 'II' },
+          { codigo: '8030110', nombre: 'EAP Aguilas Sur', localidad: 'Aguilas', area: 'III' },
+          { codigo: '8030510', nombre: 'EAP San Diego', localidad: 'Lorca', area: 'III' },
+          { codigo: '8030410', nombre: 'EAP Puerto Lumbreras', localidad: 'Puerto Lumbreras', area: 'III' },
+          { codigo: '8030710', nombre: 'EAP La Paca', localidad: 'Lorca', area: 'III' },
+          { codigo: '8030732', nombre: 'CONS. COY', localidad: '', area: 'III' },
+          { codigo: '8030210', nombre: 'EAP Lorca Sur', localidad: 'Lorca', area: 'III' },
+          { codigo: '8030910', nombre: 'EAP Totana Sur', localidad: 'Totana', area: 'III' },
+          { codigo: '8030610', nombre: 'C.S. Totana Norte', localidad: 'Totana', area: 'III' },
+          { codigo: '8030310', nombre: 'C.S. Lorca Centro', localidad: 'Lorca', area: 'III' },
+          { codigo: '8031010', nombre: 'C.S. Sutullena', localidad: 'Sutullena - Lorca', area: 'III' },
+          { codigo: '8030810', nombre: 'C.S. Aguilas Norte', localidad: 'Aguilas', area: 'III' },
+          { codigo: '8011410', nombre: 'EAP Calasparra ', localidad: 'Calasparra', area: 'IV' },
+          { codigo: '8012910', nombre: 'EAP Moratalla ', localidad: 'Moratalla', area: 'IV' },
+          { codigo: '8011710', nombre: 'C.S. Caravaca de la Cruz', localidad: 'CARAVACA DE LA CRUZ', area: 'IV' },
+          { codigo: '8014310', nombre: 'C.S. Caravaca-Barranda', localidad: 'Barranda (CARAVACA DE LA CRUZ)', area: 'IV' },
+          { codigo: '8011210', nombre: 'C.S. Bullas', localidad: 'Bullas', area: 'IV' },
+          { codigo: '8011810', nombre: 'C.S. Cehegin', localidad: 'Cehegin', area: 'IV' },
+          { codigo: '8012310', nombre: 'EAP Jumilla', localidad: 'Jumilla', area: 'V' },
+          { codigo: '8014010', nombre: 'C.S.  Yecla Este', localidad: 'Yecla', area: 'V' },
+          { codigo: '8014810', nombre: 'C.S.  Yecla Oeste', localidad: 'Yecla', area: 'V' },
+          { codigo: '8013010', nombre: 'EAP Murcia Centro', localidad: 'Murcia', area: 'VI' },
+          { codigo: '8014210', nombre: 'EAP Molina Jesús Marín', localidad: 'Molina de Segura', area: 'VI' },
+          { codigo: '8013810', nombre: 'EAP Vistalegre-La Flota', localidad: 'Murcia', area: 'VI' },
+          { codigo: '8014410', nombre: 'EAP Ceuti', localidad: 'Ceutí', area: 'VI' },
+          { codigo: '8011310', nombre: 'CENTRO DE SALUD DE CHURRA', localidad: 'Churra', area: 'VI' },
+          { codigo: '8012710', nombre: 'EAP Molina Antonio García', localidad: 'Molina de Segura', area: 'VI' },
+          { codigo: '8010810', nombre: 'EAP Archena', localidad: 'Archena', area: 'VI' },
+          { codigo: '8013610', nombre: 'C.S. Sta. María de Gracia', localidad: 'Murcia', area: 'VI' },
+          { codigo: '8014510', nombre: 'C.S. Lorqui', localidad: 'LORQUI', area: 'VI' },
+          { codigo: '8010110', nombre: 'C.S. Abanilla', localidad: 'ABANILLA', area: 'VI' },
+          { codigo: '8012610', nombre: 'C.S. Las torres de Cotillas', localidad: 'LAS TORRES DE COTILLAS', area: 'VI' },
+          { codigo: '8012210', nombre: 'C.S. Fortuna (nuevo)', localidad: 'FORTUNA', area: 'VI' },
+          { codigo: '8015010', nombre: 'C.S. El Ranero', localidad: 'Murcia', area: 'VI' },
+          { codigo: '8010510', nombre: 'C.S. Alguazas', localidad: 'ALGUAZAS', area: 'VI' },
+          { codigo: '8014910', nombre: 'C.S. Zarandona', localidad: 'Murcia', area: 'VI' },
+          { codigo: '8015410', nombre: 'EAP Floridablanca ', localidad: 'Murcia', area: 'VII' },
+          { codigo: '8013110', nombre: 'EAP Infante', localidad: 'Murcia', area: 'VII' },
+          { codigo: '8011010', nombre: 'C.S. Beniajan', localidad: 'MURCIA', area: 'VII' },
+          { codigo: '8012810', nombre: 'C.S. MONTEAGUDO', localidad: 'Murcia', area: 'VII' },
+          { codigo: '8015110', nombre: 'C.S. Llano de Brujas.', localidad: 'Llano de Brujas (MURCIA)', area: 'VII' },
+          { codigo: '8013710', nombre: 'C.S. Santomera', localidad: 'SANTOMERA', area: 'VII' },
+          { codigo: '8011110', nombre: 'C.S. Beniel', localidad: 'BENIEL', area: 'VII' },
+          { codigo: '8015510', nombre: 'C.S. Murcia Sur', localidad: 'Murcia', area: 'VII' },
+          { codigo: '8010910', nombre: 'C.S. Bº del Carmen', localidad: 'MURCIA', area: 'VII' },
+          { codigo: '8010710', nombre: 'C.S. Alquerias', localidad: 'MURCIA', area: 'VII' },
+          { codigo: '8013510', nombre: 'C.S. Puente Tocinos', localidad: 'MURCIA', area: 'VII' },
+          { codigo: '8013910', nombre: 'C.S. Vistabella', localidad: 'MURCIA', area: 'VII' },
+          { codigo: '8021510', nombre: 'EAP San Javier', localidad: 'San Javier', area: 'VIII' },
+          { codigo: '8022110', nombre: 'EAP Torre Pacheco Oeste', localidad: 'Torre Pacheco', area: 'VIII' },
+          { codigo: '8021310', nombre: 'C.S. San Pedro del Pinatar', localidad: 'SAN PEDRO DEL PINATAR', area: 'VIII' },
+          { codigo: '8021710', nombre: 'C.S. Torre Pacheco Este', localidad: 'TORRE PACHECO', area: 'VIII' },
+          { codigo: '8021910', nombre: 'C.S. Los alcazares', localidad: 'LOS ALCAZARES', area: 'VIII' },
+          { codigo: '8015310', nombre: 'EAP Cieza Oeste', localidad: 'Cieza', area: 'IX' },
+          { codigo: '8010210', nombre: 'C.S. Abarán', localidad: 'Murcia (ABARAN)', area: 'IX' },
+          { codigo: '8011910', nombre: 'C.S. Cieza Este', localidad: 'CIEZA', area: 'IX' },
+          { codigo: '8014610', nombre: 'C.S. Blanca', localidad: 'BLANCA', area: 'IX' }
+        ];
+        const serviciosHospitalarios = [
+          { codigo: 'ACL', descripcion: 'Análisis Clínicos' }, { codigo: 'ACV', descripcion: 'Angiologia Cirugia Vascular' }, { codigo: 'ALG', descripcion: 'Alergología' }, { codigo: 'ALGI', descripcion: 'Alergologia Inf.' }, { codigo: 'ANR', descripcion: 'Anestesia Reanimacion' }, { codigo: 'ANRI', descripcion: 'Anestesia Reanimación Infantil' }, { codigo: 'AP', descripcion: 'Atención Primaria' }, { codigo: 'APA', descripcion: 'Anatomía Patológica' }, { codigo: 'BIO', descripcion: 'Bioquímica Clínica' }, { codigo: 'CAAS', descripcion: 'CORE Cronicidad Avanzada-At.Sociosanitaria' }, { codigo: 'CAD_MU', descripcion: 'Centro de Atención a Drogodependencia Mula' }, { codigo: 'CAR', descripcion: 'Cardiología' }, { codigo: 'CARI', descripcion: 'Cardiologia Inf.' }, { codigo: 'CCA', descripcion: 'Cirugía Cardiaca' }, { codigo: 'CCAI', descripcion: 'C. Cardiaca Infantil' }, { codigo: 'CGD', descripcion: 'Cirugia General y Digestivo' }, { codigo: 'CMF', descripcion: 'Cirugía Maxilofacial' }, { codigo: 'CMFI', descripcion: 'Cirugia Maxilofacial Inf.' }, { codigo: 'CP', descripcion: 'CP Murcia' }, { codigo: 'CPE', descripcion: 'Cirugía Pediátrica' }, { codigo: 'CPII', descripcion: 'CP Murcia II' }, { codigo: 'CPL', descripcion: 'Cirugia plastica y reparadora' }, { codigo: 'CPLI', descripcion: 'C. Plast. y Rep. Infantil' }, { codigo: 'CSMMA', descripcion: 'Salud Mental Adultos Mula' }, { codigo: 'CSMMI', descripcion: 'Salud Mental Mula Infantil' }, { codigo: 'CTO', descripcion: 'Cirugía Torácica' }, { codigo: 'DER', descripcion: 'Dermatología' }, { codigo: 'DERI', descripcion: 'Dermatología Infantil' }, { codigo: 'DIA', descripcion: 'Dialisis' }, { codigo: 'DIAI', descripcion: 'Dialisis Infantil' }, { codigo: 'DIG', descripcion: 'Digestivo' }, { codigo: 'DIGI', descripcion: 'Digestivo Inf.' }, { codigo: 'DME', descripcion: 'Dirección Médica' }, { codigo: 'END', descripcion: 'Endocrinologia y Nutricion' }, { codigo: 'ENDG', descripcion: 'Endocrinología Ginecológica' }, { codigo: 'ENDI', descripcion: 'Endocrinologia Inf.' }, { codigo: 'ENF', descripcion: 'Enfermería' }, { codigo: 'EST', descripcion: 'Esterilidad' }, { codigo: 'ETAC', descripcion: 'ASERTIVO COMUNITARIO' }, { codigo: 'FAR', descripcion: 'Farmacia Hospitalaria' }, { codigo: 'FIS', descripcion: 'Fisioterapia' }, { codigo: 'GEN', descripcion: 'Genética' }, { codigo: 'GIN', descripcion: 'Ginecología' }, { codigo: 'GRT', descripcion: 'Geriatría' }, { codigo: 'HAD', descripcion: 'Hosp. A Domicilio' }, { codigo: 'HADI', descripcion: 'Hosp. a Domicilio Infantil' }, { codigo: 'HDIA-IJ', descripcion: 'HOSPITAL DE DÍA INFANTO-JUVENIL SALUD MENTAL' }, { codigo: 'HDM', descripcion: 'HOSPITAL DE DIA MEDICO' }, { codigo: 'HDQ', descripcion: 'HOSPITAL DE DIA QUIRURGICO' }, { codigo: 'HEM', descripcion: 'Hematología' }, { codigo: 'HEMO', descripcion: 'Hemodinámica' }, { codigo: 'INF', descripcion: 'M.I. Infecciosas' }, { codigo: 'INFI', descripcion: 'Infecciosas Infantil' }, { codigo: 'INM', descripcion: 'Inmunologia' }, { codigo: 'MIC', descripcion: 'Microbiología' }, { codigo: 'MIR', descripcion: 'Medicina Interna' }, { codigo: 'MIR2', descripcion: 'Medicina Interna 2' }, { codigo: 'MIV', descripcion: 'Medicina Intensiva - MIV' }, { codigo: 'MIVI', descripcion: 'Medicina Intensiva Inf. - (MIVI Inf.)' }, { codigo: 'MIVNEO', descripcion: 'MIV Neonatal' }, { codigo: 'MNU', descripcion: 'Medicina Nuclear' }, { codigo: 'MPR', descripcion: 'Medicina Preventiva' }, { codigo: 'MTRO', descripcion: 'Medicina Tropical' }, { codigo: 'NEF', descripcion: 'Nefrología' }, { codigo: 'NEFI', descripcion: 'Nefrologia Inf.' }, { codigo: 'NEO', descripcion: 'Neonatología' }, { codigo: 'NFL', descripcion: 'Neurofisiologia clinica' }, { codigo: 'NML', descripcion: 'Neumología' }, { codigo: 'NMLI', descripcion: 'Neumologia Inf.' }, { codigo: 'NRC', descripcion: 'Neurocirugía' }, { codigo: 'NRCI', descripcion: 'Neurocirugia Infantil' }, { codigo: 'NRL', descripcion: 'Neurología' }, { codigo: 'NRLI', descripcion: 'Neurologia Inf.' }, { codigo: 'OBG', descripcion: 'Obstetricia y Ginecología' }, { codigo: 'OBS', descripcion: 'Obstetricia' }, { codigo: 'OFT', descripcion: 'Oftalmología' }, { codigo: 'OFTI', descripcion: 'Oftalmología Infantil' }, { codigo: 'ONC', descripcion: 'Oncología Médica' }, { codigo: 'ONCG', descripcion: 'Oncología Ginecológica' }, { codigo: 'ONCI', descripcion: 'Oncologia Inf.' }, { codigo: 'ONR', descripcion: 'Oncología Radioterápica' }, { codigo: 'ORL', descripcion: 'Otorrinolaringología' }, { codigo: 'ORLI', descripcion: 'ORL Infantil' }, { codigo: 'PCC', descripcion: 'Paciente crónico complejo' }, { codigo: 'PED', descripcion: 'Pediatría' }, { codigo: 'PIJ', descripcion: 'Psiquiatría Infanto-Juvenil' }, { codigo: 'PRAD', descripcion: 'Radiología Primaria' }, { codigo: 'PRL', descripcion: 'PREVENCIÓN DE RIESGOS LABORALES' }, { codigo: 'PSQ', descripcion: 'Psiquiatría' }, { codigo: 'PSII', descripcion: 'Psicología Infantil' }, { codigo: 'QRAD', descripcion: 'Radiología (C.E.)' }, { codigo: 'RA', descripcion: 'Rehabilitacion Adultos' }, { codigo: 'RAD', descripcion: 'Radiodiagnostico' }, { codigo: 'RADF', descripcion: 'Radio-Farmacia' }, { codigo: 'RADI', descripcion: 'Rad. Infantil' }, { codigo: 'RADM', descripcion: 'Rad. Maternal' }, { codigo: 'REH', descripcion: 'Rehabilitación' }, { codigo: 'REU', descripcion: 'Reumatología' }, { codigo: 'REUI', descripcion: 'Reumatología Infantil' }, { codigo: 'RFH', descripcion: 'Radiofísica Hospitalaria' }, { codigo: 'SCSS', descripcion: 'Servicio de Coordinación Sociosanitario' }, { codigo: 'SM', descripcion: 'Salud Medioambiental' }, { codigo: 'SMA', descripcion: 'Salud Mental Adultos' }, { codigo: 'SMAEP', descripcion: 'Salud Mental Adultos (El Palmar)' }, { codigo: 'SMI', descripcion: 'Salud Mental Infanto Juvenil' }, { codigo: 'SMIEP', descripcion: 'Salud Mental Infanto-Juvenil El Palmar' }, { codigo: 'TRA', descripcion: 'Traumatología' }, { codigo: 'TRAI', descripcion: 'Traumatología Infantil' }, { codigo: 'UARR', descripcion: 'Unidad de Arritmias' }, { codigo: 'UCC', descripcion: 'Unidad de Coordinación a la Comunidad' }, { codigo: 'UCP', descripcion: 'U. Paliativos' }, { codigo: 'UCPI', descripcion: 'U. Paliativos Inf.' }, { codigo: 'UCE', descripcion: 'Unidad de Corta Estancia' }, { codigo: 'UDE', descripcion: 'Unidad de Demencias' }, { codigo: 'UDO', descripcion: 'U. del dolor' }, { codigo: 'UENDO', descripcion: 'Unidad de Endoscopias' }, { codigo: 'UFTM', descripcion: 'Unidad de Fases Tempranas de Medicamentos (Ensayos Clinicos)' }, { codigo: 'UGA', descripcion: 'U. Ginecologica de Apoyo' }, { codigo: 'UHM', descripcion: 'Unidad de Hospitalización de Molina' }, { codigo: 'UHSJ', descripcion: 'Unidad de Hospitalización de San José' }, { codigo: 'UMAM', descripcion: 'U. de Mama' }, { codigo: 'UMF', descripcion: 'U. Materno Fetal' }, { codigo: 'UPCCI', descripcion: 'U. Paciente Crónico Complejo Infantil' }, { codigo: 'UPD', descripcion: 'U. Pie Diabético' }, { codigo: 'URA', descripcion: 'Unidad de Reproducción Asistida' }, { codigo: 'URAIPI', descripcion: 'UR Asistencia Integral Paciente Infantil' }, { codigo: 'URAIPIC', descripcion: 'URAIPI Paciente Infantil Complejo' }, { codigo: 'URAIPIP', descripcion: 'URAIPI Paciente Infantil Paliativo' }, { codigo: 'URF', descripcion: 'Unidad de Recuperación Funcional' }, { codigo: 'URG', descripcion: 'Urgencias' }, { codigo: 'URGI', descripcion: 'Urg. Infantil' }, { codigo: 'URGM', descripcion: 'Urg. Maternal' }, { codigo: 'URHADI', descripcion: 'URHADI Hospitalización a Domicilio Infantil' }, { codigo: 'URO', descripcion: 'Urología' }, { codigo: 'UROI', descripcion: 'Urología Infantil' }, { codigo: 'USM', descripcion: 'Unidad Salud Mental - Alcantarilla' }, { codigo: 'UTOX', descripcion: 'Unidad de Torax (DG Salud Pública)' }
+        ];
+        const citaPresencialOptions = [
+          { id: 'propia', nombre: 'Propia área' },
+          { id: 'otra', nombre: 'Otra área' }
+        ];
+
+        const handleInputChange = (field, value) => {
+          if (field === 'origenArea' || field === 'origenCentro' || field === 'destinoServicio' || field === 'otraAreaCita') {
+            if (editingRule) {
+              const currentSelection = editingRule[field] || [];
+              const newSelection = currentSelection.includes(value)
+                ? currentSelection.filter(item => item !== value)
+                : [...currentSelection, value];
+              let updatedRule = { ...editingRule, [field]: newSelection };
+              if (field === 'origenArea') {
+                updatedRule.origenCentro = [];
+              }
+              setEditingRule(updatedRule);
+            } else {
+              const currentSelection = newRule[field] || [];
+              const newSelection = currentSelection.includes(value)
+                ? currentSelection.filter(item => item !== value)
+                : [...currentSelection, value];
+              let updatedRule = { ...newRule, [field]: newSelection };
+              if (field === 'origenArea') {
+                updatedRule.origenCentro = [];
+              }
+              setNewRule(updatedRule);
+            }
+          } else {
+            if (editingRule) {
+              setEditingRule({ ...editingRule, [field]: value });
+            } else {
+              setNewRule({ ...newRule, [field]: value });
+            }
+          }
+        };
+
+        const getCurrentRule = () => editingRule || newRule;
+
+        const filteredCentros = centrosSalud.filter(centro =>
+          (getCurrentRule().origenArea || []).includes(centro.area)
+        );
+
+        const getHospitalPorArea = (areaId) => {
+          const area = areasSanitarias.find(a => a.id === areaId);
+          return area ? area.hospital : '';
+        };
+
+        const addRule = () => {
+          if (validateRule(newRule)) {
+            const ruleWithId = {
+              ...newRule,
+              id: Date.now(),
+              origenAreaNombre: (newRule.origenArea || []).map(areaId =>
+                areasSanitarias.find(a => a.id === areaId)?.nombre || ''
+              ).filter(Boolean).join(', '),
+              origenCentroNombre: (() => {
+                const centros = newRule.origenCentro || [];
+                const todosCentros = centros.filter(c => c.startsWith('TODOS_'));
+                const centrosIndividuales = centros.filter(c => !c.startsWith('TODOS_'));
+                let nombres = [];
+                todosCentros.forEach(todosCode => {
+                  const areaId = todosCode.replace('TODOS_', '');
+                  const area = areasSanitarias.find(a => a.id === areaId);
+                  if (area) {
+                    nombres.push(`Todos los Centros del ${area.nombre}`);
+                  }
+                });
+                centrosIndividuales.forEach(codigo => {
+                  const centro = centrosSalud.find(c => c.codigo === codigo);
+                  if (centro) {
+                    nombres.push(centro.nombre);
+                  }
+                });
+                return nombres.join(', ');
+              })(),
+              destinoAreaNombre: areasSanitarias.find(a => a.id === newRule.destinoArea)?.nombre || '',
+              destinoHospitalNombre: getHospitalPorArea(newRule.destinoArea),
+              destinoServicioNombre: (newRule.destinoServicio || []).map(codigo =>
+                serviciosHospitalarios.find(s => s.codigo === codigo)?.descripcion || ''
+              ).filter(Boolean).join(', '),
+              citaPresencialNombre: citaPresencialOptions.find(c => c.id === newRule.citaPresencial)?.nombre || '',
+              otraAreaCitaNombre: (newRule.otraAreaCita || []).map(areaId =>
+                areasSanitarias.find(a => a.id === areaId)?.nombre || ''
+              ).filter(Boolean).join(', ')
+            };
+            setRules([...rules, ruleWithId]);
+            setNewRule({
+              origenArea: [],
+              origenCentro: [],
+              destinoArea: '',
+              destinoHospital: '',
+              destinoServicio: [],
+              citaPresencial: '',
+              otraAreaCita: []
+            });
+          }
+        };
+
+        const updateRule = () => {
+          if (validateRule(editingRule)) {
+            const updatedRule = {
+              ...editingRule,
+              origenAreaNombre: (editingRule.origenArea || []).map(areaId =>
+                areasSanitarias.find(a => a.id === areaId)?.nombre || ''
+              ).filter(Boolean).join(', '),
+              origenCentroNombre: (() => {
+                const centros = editingRule.origenCentro || [];
+                const todosCentros = centros.filter(c => c.startsWith('TODOS_'));
+                const centrosIndividuales = centros.filter(c => !c.startsWith('TODOS_'));
+                let nombres = [];
+                todosCentros.forEach(todosCode => {
+                  const areaId = todosCode.replace('TODOS_', '');
+                  const area = areasSanitarias.find(a => a.id === areaId);
+                  if (area) {
+                    nombres.push(`Todos los Centros del ${area.nombre}`);
+                  }
+                });
+                centrosIndividuales.forEach(codigo => {
+                  const centro = centrosSalud.find(c => c.codigo === codigo);
+                  if (centro) {
+                    nombres.push(centro.nombre);
+                  }
+                });
+                return nombres.join(', ');
+              })(),
+              destinoAreaNombre: areasSanitarias.find(a => a.id === editingRule.destinoArea)?.nombre || '',
+              destinoHospitalNombre: getHospitalPorArea(editingRule.destinoArea),
+              destinoServicioNombre: (editingRule.destinoServicio || []).map(codigo =>
+                serviciosHospitalarios.find(s => s.codigo === codigo)?.descripcion || ''
+              ).filter(Boolean).join(', '),
+              citaPresencialNombre: citaPresencialOptions.find(c => c.id === editingRule.citaPresencial)?.nombre || '',
+              otraAreaCitaNombre: (editingRule.otraAreaCita || []).map(areaId =>
+                areasSanitarias.find(a => a.id === areaId)?.nombre || ''
+              ).filter(Boolean).join(', ')
+            };
+            setRules(rules.map(rule => rule.id === editingRule.id ? updatedRule : rule));
+            setEditingRule(null);
+          }
+        };
+
+        const deleteRule = (id) => {
+          setRules(rules.filter(rule => rule.id !== id));
+        };
+
+        const validateRule = (rule) => {
+          return (rule.origenArea || []).length > 0 && (rule.origenCentro || []).length > 0 && rule.destinoArea &&
+            (rule.destinoServicio || []).length > 0 && rule.citaPresencial;
+        };
+
+        const exportRules = () => {
+          const exportData = {
+            metadata: {
+              generado: new Date().toISOString(),
+              sistema: 'COMPAS - Portal de Configuración SMS',
+              version: '1.0',
+              total_reglas: rules.length
+            },
+            reglas: rules.map(rule => ({
+              id: rule.id,
+              origen: {
+                area_id: rule.origenArea,
+                area_nombre: rule.origenAreaNombre,
+                centro_codigo: rule.origenCentro,
+                centro_nombre: rule.origenCentroNombre
+              },
+              destino: {
+                area_id: rule.destinoArea,
+                area_nombre: rule.destinoAreaNombre,
+                hospital: rule.destinoHospitalNombre,
+                servicio_codigo: rule.destinoServicio,
+                servicio_nombre: rule.destinoServicioNombre
+              },
+              cita_presencial: {
+                tipo: rule.citaPresencial,
+                tipo_nombre: rule.citaPresencialNombre,
+                otra_area_id: rule.otraAreaCita || [],
+                otra_area_nombre: (rule.otraAreaCita || []).map(areaId =>
+                  areasSanitarias.find(a => a.id === areaId)?.nombre || ''
+                ).filter(Boolean).join(', ')
+              }
+            }))
+          };
+          const dataStr = JSON.stringify(exportData, null, 2);
+          const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+          const exportFileDefaultName = 'compas_reglas_interoperabilidad.json';
+          const linkElement = document.createElement('a');
+          linkElement.setAttribute('href', dataUri);
+          linkElement.setAttribute('download', exportFileDefaultName);
+          linkElement.click();
+        };
+
+        const importRules = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              try {
+                const importedData = JSON.parse(e.target.result);
+                if (importedData.reglas && Array.isArray(importedData.reglas)) {
+                  const convertedRules = importedData.reglas.map(rule => ({
+                    id: rule.id || Date.now() + Math.random(),
+                    origenArea: rule.origen.area_id,
+                    origenCentro: rule.origen.centro_codigo,
+                    destinoArea: rule.destino.area_id,
+                    destinoServicio: rule.destino.servicio_codigo,
+                    citaPresencial: rule.cita_presencial.tipo,
+                    otraAreaCita: rule.cita_presencial.otra_area_id || [],
+                    origenAreaNombre: rule.origen.area_nombre,
+                    origenCentroNombre: rule.origen.centro_nombre,
+                    destinoAreaNombre: rule.destino.area_nombre,
+                    destinoHospitalNombre: rule.destino.hospital,
+                    destinoServicioNombre: rule.destino.servicio_nombre,
+                    citaPresencialNombre: rule.cita_presencial.tipo_nombre,
+                    otraAreaCitaNombre: rule.cita_presencial.otra_area_nombre || ''
+                  }));
+                  setRules(convertedRules);
+                  alert(`Se han importado ${convertedRules.length} reglas correctamente.`);
+                }
+              } catch (error) {
+                alert('Error al importar el archivo. Asegúrese de que es un archivo JSON válido.');
+              }
+            };
+            reader.readAsText(file);
+          }
+        };
+
+        return (
+          <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">COMPAS</h1>
+                    <p className="text-gray-600 mt-1">Portal de Configuración de Interoperabilidad - Servicio Murciano de Salud</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer">
+                      <Upload size={20} />
+                      Importar Reglas
+                      <input
+                        type="file"
+                        accept=".json"
+                        onChange={importRules}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      onClick={exportRules}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Download size={20} />
+                      Exportar Reglas
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  {editingRule ? 'Editar Regla de Interoperabilidad' : 'Nueva Regla de Interoperabilidad'}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-700 border-b pb-2">ORIGEN Interconsulta</h3>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Áreas Sanitarias de Origen (Selección Múltiple)
+                      </label>
+                      <div className="border border-gray-300 rounded-md p-3 max-h-40 overflow-y-auto">
+                        {areasSanitarias.map(area => (
+                          <div key={area.id} className="flex items-center mb-2">
+                            <input
+                              type="checkbox"
+                              id={`origen-area-${area.id}`}
+                              value={area.id}
+                              checked={(getCurrentRule().origenArea || []).includes(area.id)}
+                              onChange={(e) => handleInputChange('origenArea', e.target.value)}
+                              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor={`origen-area-${area.id}`} className="text-sm text-gray-700">
+                              {area.nombre}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      {(getCurrentRule().origenArea || []).length > 0 && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          Áreas seleccionadas: {(getCurrentRule().origenArea || []).length}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Centros de Salud de Origen (Selección Múltiple)
+                      </label>
+                      <div className="border border-gray-300 rounded-md p-3 max-h-48 overflow-y-auto">
+                        {(getCurrentRule().origenArea || []).length > 0 ? (
+                          <>
+                            {(getCurrentRule().origenArea || []).map(areaId => {
+                              const area = areasSanitarias.find(a => a.id === areaId);
+                              const centrosArea = filteredCentros.filter(c => c.area === areaId);
+                              return (
+                                <div key={areaId} className="mb-3">
+                                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                                    {area?.nombre}
+                                  </div>
+                                  <div className="flex items-center mb-2 ml-2 bg-green-50 p-2 rounded">
+                                    <input
+                                      type="checkbox"
+                                      id={`todos-centros-${areaId}`}
+                                      value={`TODOS_${areaId}`}
+                                      checked={(getCurrentRule().origenCentro || []).includes(`TODOS_${areaId}`)}
+                                      onChange={(e) => handleInputChange('origenCentro', e.target.value)}
+                                      className="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor={`todos-centros-${areaId}`} className="text-sm font-medium text-green-700">
+                                      Todos los Centros del {area?.nombre}
+                                    </label>
+                                  </div>
+                                  {centrosArea.map(centro => (
+                                    <div key={centro.codigo} className="flex items-center mb-1 ml-4">
+                                      <input
+                                        type="checkbox"
+                                        id={`centro-${centro.codigo}`}
+                                        value={centro.codigo}
+                                        checked={(getCurrentRule().origenCentro || []).includes(centro.codigo)}
+                                        onChange={(e) => handleInputChange('origenCentro', e.target.value)}
+                                        className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                      />
+                                      <label htmlFor={`centro-${centro.codigo}`} className="text-sm text-gray-700">
+                                        {centro.nombre} {centro.localidad && `(${centro.localidad})`}
+                                      </label>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })}
+                          </>
+                        ) : (
+                          <div className="text-gray-500 text-sm italic">
+                            Primero seleccione al menos un área sanitaria
+                          </div>
+                        )}
+                      </div>
+                      {(getCurrentRule().origenCentro || []).length > 0 && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          Centros seleccionados: {(getCurrentRule().origenCentro || []).length}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-700 border-b pb-2">DESTINO Interconsulta</h3>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Área Sanitaria de Destino
+                      </label>
+                      <select
+                        value={getCurrentRule().destinoArea}
+                        onChange={(e) => handleInputChange('destinoArea', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Seleccione un área</option>
+                        {areasSanitarias.map(area => (
+                          <option key={area.id} value={area.id}>{area.nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {getCurrentRule().destinoArea && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Hospital de Destino
+                        </label>
+                        <input
+                          type="text"
+                          value={getHospitalPorArea(getCurrentRule().destinoArea)}
+                          readOnly
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Servicio Hospitalario Destino
+                      </label>
+                      <div className="border border-gray-300 rounded-md p-3 max-h-48 overflow-y-auto">
+                        {serviciosHospitalarios.map(servicio => (
+                          <div key={servicio.codigo} className="flex items-center mb-2">
+                            <input
+                              type="checkbox"
+                              id={`servicio-${servicio.codigo}`}
+                              value={servicio.codigo}
+                              checked={(getCurrentRule().destinoServicio || []).includes(servicio.codigo)}
+                              onChange={(e) => handleInputChange('destinoServicio', e.target.value)}
+                              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              disabled={!getCurrentRule().destinoArea}
+                            />
+                            <label htmlFor={`servicio-${servicio.codigo}`} className="text-sm text-gray-700">
+                              {servicio.codigo} - {servicio.descripcion}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      {(getCurrentRule().destinoServicio || []).length > 0 && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          Servicios seleccionados: {(getCurrentRule().destinoServicio || []).length}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Cita Presencial
+                      </label>
+                      <select
+                        value={getCurrentRule().citaPresencial}
+                        onChange={(e) => handleInputChange('citaPresencial', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Seleccione una opción</option>
+                        {citaPresencialOptions.map(option => (
+                          <option key={option.id} value={option.id}>{option.nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {getCurrentRule().citaPresencial === 'otra' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Especificar Otra Área
+                        </label>
+                        <select
+                          value={getCurrentRule().otraAreaCita}
+                          onChange={(e) => handleInputChange('otraAreaCita', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Seleccione un área</option>
+                          {areasSanitarias.map(area => (
+                            <option key={area.id} value={area.id}>{area.nombre}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-3 mt-6">
+                  {editingRule ? (
+                    <>
+                      <button
+                        onClick={updateRule}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <Check size={20} />
+                        Actualizar Regla
+                      </button>
+                      <button
+                        onClick={() => setEditingRule(null)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        <X size={20} />
+                        Cancelar
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={addRule}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus size={20} />
+                      Añadir Regla
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm">
+                <div className="p-6 border-b">
+                  <h2 className="text-xl font-semibold text-gray-900">Reglas de Interoperabilidad Configuradas</h2>
+                  <p className="text-gray-600 mt-1">Total de reglas: {rules.length}</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Origen
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Destino
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Cita Presencial
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Acciones
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {rules.map((rule) => (
+                        <tr key={rule.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{rule.origenAreaNombre}</div>
+                            <div className="text-sm text-gray-500">{rule.origenCentroNombre}</div>
+                            {(rule.origenArea || []).length > 1 && (
+                              <div className="text-xs text-blue-600">
+                                {(rule.origenArea || []).length} áreas seleccionadas
+                              </div>
+                            )}
+                            {(rule.origenCentro || []).length > 1 && !(rule.origenCentro || []).some(c => c.startsWith('TODOS_')) && (
+                              <div className="text-xs text-green-600">
+                                {(rule.origenCentro || []).length} centros seleccionados
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{rule.destinoAreaNombre}</div>
+                            <div className="text-sm text-blue-600">{rule.destinoHospitalNombre}</div>
+                            <div className="text-sm text-gray-500">{rule.destinoServicioNombre}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{rule.citaPresencialNombre}</div>
+                            {rule.otraAreaCitaNombre && (
+                              <div className="text-sm text-gray-500">{rule.otraAreaCitaNombre}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button
+                              onClick={() => setEditingRule(rule)}
+                              className="text-blue-600 hover:text-blue-900 mr-3"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => deleteRule(rule.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {rules.length === 0 && (
+                  <div className="p-6 text-center text-gray-500">
+                    No hay reglas configuradas. Añada la primera regla usando el formulario superior.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      };
+      // ==================================================================
+      // FIN DE TU COMPONENTE
+      // ==================================================================
+
+
+      // Esta parte final es la que dibuja tu componente en la página
+      const container = document.getElementById('root');
+      const root = ReactDOM.createRoot(container);
+      root.render(<CompasConfigPortal />);
+
+    </script>
+</body>
+</html>
